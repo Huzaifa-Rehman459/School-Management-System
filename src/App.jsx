@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ROLES, NAV_LABELS } from "./config/roles";
-import Sidebar from "./components/Sidebar";
+import Sidebar from "./components/SideBar";
 import Badge from "./components/Badge";
 import Login from "./pages/Login";
 import Dashboard   from "./pages/Dashboard";
