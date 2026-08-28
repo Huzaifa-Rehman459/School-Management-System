@@ -1,0 +1,21 @@
+import { useEffect, useState } from "react";
+import Table from "../components/Table";
+import Badge from "../components/Badge";
+import { apiRequest } from "../api";
+
+export default function Teachers({ cfg }) {
+  const [teachers, setTeachers] = useState([]);
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({ fullName: "", email: "", phone: "", employeeId: "", qualification: "", experience: "", password: "12345678" });
+  const [error, setError] = useState("");
+  async function load() { try { const data = await apiRequest(`/teachers${search ? `?search=${encodeURIComponent(search)}` : ""}`); setTeachers(data.teachers || []); } catch (err) { setError(err.message); } }
+  useEffect(() => { load(); }, [search]);
+  function edit(t) { setEditing(t._id); setForm({ fullName:t.fullName||"",email:t.email||"",phone:t.phone||"",employeeId:t.employeeId||"",qualification:t.qualification||"",experience:t.experience||"",password:"" }); setOpen(true); setError(""); }
+  async function save(e) { e.preventDefault(); setError(""); try { if (editing) await apiRequest(`/teachers/${editing}`, { method:"PUT", body:JSON.stringify(form) }); else await apiRequest("/teachers", { method:"POST", body:JSON.stringify(form) }); setOpen(false); load(); } catch(err){setError(err.message);} }
+  async function remove(id) { if(!window.confirm("Delete this teacher?")) return; try { await apiRequest(`/teachers/${id}`,{method:"DELETE"}); load(); } catch(err){setError(err.message);} }
+  const rows=teachers.filter(t=>`${t.fullName} ${t.email} ${t.teacherId}`.toLowerCase().includes(search.toLowerCase())).map(t=>[t.teacherId,t.fullName,t.qualification||"—",t.experience||"—",t.email,<Badge text={t.status} type={t.status==="Active"?"success":"danger"}/>,<><button className="link-btn" style={{color:cfg.color}} onClick={()=>edit(t)}>Edit</button><button className="link-btn danger-link" onClick={()=>remove(t._id)}>Delete</button></>]);
+  return <div className="page"><div className="page__header"><div className="page__header-row"><div><h2 className="page__title">Teachers</h2><p className="page__subtitle">Manage teaching staff</p></div><button className="btn btn--primary" style={{backgroundColor:cfg.color}} onClick={()=>{setEditing(null);setForm({fullName:"",email:"",phone:"",employeeId:"",qualification:"",experience:"",password:"12345678"});setOpen(true)}}>+ Add Teacher</button></div></div>{error&&<div className="form-message form-message--error">{error}</div>}<div className="card"><input className="search-input" placeholder="Search teachers..." value={search} onChange={e=>setSearch(e.target.value)}/><Table cols={["Teacher ID","Name","Qualification","Experience","Email","Status","Actions"]} rows={rows}/></div>{open&&<div className="modal-backdrop"><form className="modal-card" onSubmit={save}><div className="modal-header"><h3>{editing?"Edit Teacher":"Add Teacher"}</h3><button type="button" className="modal-close" onClick={()=>setOpen(false)}>✕</button></div><div className="form-grid"><Field label="Full Name" value={form.fullName} onChange={v=>setForm({...form,fullName:v})} required/><Field label="Email" type="email" value={form.email} onChange={v=>setForm({...form,email:v})} required/><Field label="Phone" value={form.phone} onChange={v=>setForm({...form,phone:v})}/><Field label="Employee ID" value={form.employeeId} onChange={v=>setForm({...form,employeeId:v})}/><Field label="Qualification" value={form.qualification} onChange={v=>setForm({...form,qualification:v})}/><Field label="Experience" value={form.experience} onChange={v=>setForm({...form,experience:v})}/>{!editing&&<Field label="Password" type="password" value={form.password} onChange={v=>setForm({...form,password:v})} required/>}</div><div className="modal-actions"><button type="button" className="btn" onClick={()=>setOpen(false)}>Cancel</button><button className="btn btn--primary" style={{backgroundColor:cfg.color}}>{editing?"Update Teacher":"Save Teacher"}</button></div></form></div>}</div>
+}
+function Field({label,value,onChange,type="text",required=false}){return <label className="form-group"><span className="form-label">{label}</span><input className="form-input" type={type} value={value} onChange={e=>onChange(e.target.value)} required={required}/></label>}
