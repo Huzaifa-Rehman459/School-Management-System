@@ -4,7 +4,7 @@ const generateId = require("../utils/generateId");
 
 const ROLE_LIMITS = {
   SUPER_ADMIN: 1,
-  MANAGER: 2,
+  MANAGER: 3,
   TEACHER: Infinity,
 };
 
