@@ -1,7 +1,8 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const vercelAPI = "https://school-management-system-sooty-seven.vercel.app/";
 
 export async function apiRequest(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(`${vercelAPI}${path}`, {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
